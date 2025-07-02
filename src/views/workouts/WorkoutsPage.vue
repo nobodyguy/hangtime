@@ -240,16 +240,33 @@ useHead({
                     </v-list-item-subtitle>
 
                     <template #append>
-                      <v-list-item-action end class="flex-column">
-                        <v-chip size="x-small" color="text" variant="outlined">{{
-                          difficultyById(workout.level)
-                        }}</v-chip>
-                        <div class="subscribers">
-                          <workout-subscribe
-                            :model-value="workout"
-                            size="x-small"
-                            :clickable="false"
-                          />
+                      <v-list-item-action end>
+                        <div class="d-flex w-100 justify-space-between align-end ga-2">
+                          <!-- Left column: copy/clone workout icon -->
+                          <v-btn
+                            v-if="workout.id"
+                            icon="$contentCopy"
+                            :to="{ path: '/workouts/new', query: { copy: workout.id } }"
+                            variant="text"
+                            size="small"
+                            :title="$t('workout.copy')"
+                          >
+                          </v-btn>
+
+                          <!-- Right column: chip + subscribe -->
+                          <div class="d-flex flex-column align-end">
+                            <v-chip size="x-small" color="text" variant="outlined">
+                              {{ difficultyById(workout.level) }}
+                            </v-chip>
+
+                            <div class="subscribers">
+                              <workout-subscribe
+                                :model-value="workout"
+                                size="x-small"
+                                :clickable="false"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </v-list-item-action>
                     </template>
@@ -284,6 +301,7 @@ useHead({
 .hangboard-select {
   cursor: pointer;
 }
+
 .v-theme--dark {
   .v-empty-state {
     &:deep(.v-empty-state__media) {
@@ -291,19 +309,24 @@ useHead({
     }
   }
 }
+
 .v-infinite-scroll {
   overflow-y: hidden;
 }
+
 .v-list {
   padding: 0;
 }
+
 .v-list-item {
   min-height: 64px;
   padding-top: 16px;
   padding-bottom: 16px;
+
   &:deep(.v-list-item__prepend) {
     align-self: center;
   }
+
   &:deep(.v-list-item-action) {
     align-items: end;
   }

@@ -156,6 +156,26 @@ export const useWorkoutsStore = defineStore('workouts', () => {
     }
   }
 
+  const copyWorkoutById = (id: string): Workout | undefined => {
+    const original = getWorkoutById(id)
+    if (!original) return undefined
+
+    // Deep copy of exercises
+    const copiedExercises = JSON.parse(JSON.stringify(original.exercises))
+
+    const copy = new Workout({
+      ...original,
+      id: undefined,
+      name: original.name + ' (Copy)',
+      exercises: copiedExercises,
+      user: undefined,
+      subscribers: undefined,
+      subscribers_count: undefined
+    })
+
+    return reactive(copy)
+  }
+
   /**
    * Get the Users hangboards of a certain hangboard / company.
    */
@@ -189,6 +209,7 @@ export const useWorkoutsStore = defineStore('workouts', () => {
     removeUserWorkoutById,
     updateWorkout,
     getWorkoutById,
+    copyWorkoutById,
     getWorkoutsBySelectedHangboard,
     getLeaderboard,
     resetUserWorkouts,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useHead } from '@unhead/vue'
 import { useRoute, useRouter } from 'vue-router'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 
@@ -34,12 +34,34 @@ const { workoutsCommunity } = storeToRefs(useWorkoutsStore())
 const { user } = storeToRefs(useAuthenticationStore())
 
 // workout
-const { fetchCommunityWorkouts, resetCommunityWorkouts, getWorkoutById, removeUserWorkoutById } =
-  useWorkoutsStore()
+const {
+  fetchCommunityWorkouts,
+  resetCommunityWorkouts,
+  getWorkoutById,
+  copyWorkoutById,
+  removeUserWorkoutById
+} = useWorkoutsStore()
 
 const { updateUser } = useAuthenticationStore()
 
-const workout = computed(() => getWorkoutById(route.params.id ? route.params.id : 'new'))
+// Mode: copy, edit or create
+const mode = computed(() => {
+  if (typeof route.query.copy === 'string') return 'copy'
+  if (typeof route.params.id === 'string') return 'edit'
+  return 'create'
+})
+
+const workout = computed(() => {
+  switch (mode.value) {
+    case 'copy':
+      return copyWorkoutById(route.query.copy as string)
+    case 'edit':
+      return getWorkoutById(route.params.id as string)
+    case 'create':
+    default:
+      return getWorkoutById('new')
+  }
+})
 
 // workout - edit
 const edit = ref(false)
@@ -47,11 +69,15 @@ const edit = ref(false)
 // workout - save
 const workoutSaveDialog = ref(false)
 
-onMounted(() => {
-  if (route.path === '/workouts/new') {
-    edit.value = true
-  }
-})
+watch(
+  mode,
+  (newMode) => {
+    if (newMode === 'copy' || newMode === 'create') {
+      edit.value = true
+    }
+  },
+  { immediate: true }
+)
 
 // workout - remove
 const removeWorkout = () => {
@@ -120,6 +146,15 @@ useHead({
     </template>
 
     <template #icons>
+      <v-btn
+        v-if="workout && mode === 'edit'"
+        icon="$contentCopy"
+        :to="{ path: '/workouts/new', query: { copy: workout.id } }"
+        variant="text"
+        size="small"
+        :title="$t('workout.copy')"
+      >
+      </v-btn>
       <workout-subscribe v-if="workout" size="x-large" v-model="workout" />
       <workout-share v-if="workout" v-model="workout" />
       <v-btn
@@ -225,10 +260,12 @@ useHead({
     top: 68px;
   }
 }
+
 .v-toolbar .v-btn--size-x-large {
   min-width: 64px;
   padding: 0 12px;
 }
+
 .v-theme--dark {
   .v-empty-state {
     &:deep(.v-empty-state__media) {
